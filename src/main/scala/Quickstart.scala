@@ -23,9 +23,10 @@ object Quickstart {
           .drop("time")
           .withColumn("date", from_unixtime(col("date"), "yyyy-MM-dd"))
 
-        // Write dataset in with the specified format in the specified path
+        // Write dataset with the specified format in the specified path
         events.write.format(format).mode("overwrite").partitionBy("date").save(eventsPath + "events/")
 
+        // Append historical events to dataset
         for( w <- 0 to 100){
             val historical_events = spark.read
               .option("inferSchema", "true")
@@ -49,6 +50,7 @@ object Quickstart {
             spark.sql("OPTIMIZE events")
         }
 
+        // transform the full dataset and persist it
         events_delta
           .groupBy("action","date")
           .agg(count("action").alias("action_count"))
