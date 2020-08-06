@@ -24,7 +24,7 @@ object Quickstart {
           .withColumn("date", from_unixtime(col("date"), "yyyy-MM-dd"))
 
         // Write dataset in with the specified format in the specified path
-        events.write.format(format).mode("overwrite").partitionBy("date").save(eventsPath)
+        events.write.format(format).mode("overwrite").partitionBy("date").save(eventsPath + "events/")
 
         for( w <- 0 to 100){
             val historical_events = spark.read
@@ -34,15 +34,15 @@ object Quickstart {
               .drop("time")
               .withColumn("date", from_unixtime(col("date"), "yyyy-MM-dd"))
 
-            historical_events.write.format(format).mode("append").partitionBy("date").save(eventsPath)
+            historical_events.write.format(format).mode("append").partitionBy("date").save(eventsPath + "events/")
         }
 
         // Read dataset Again
-        val events_delta = spark.read.format(format).load(eventsPath)
+        val events_delta = spark.read.format(format).load(eventsPath + "events/")
 
         // Create spark table
         spark.sql("DROP TABLE IF EXISTS events")
-        spark.sql("CREATE TABLE events USING " + format + " LOCATION '" + eventsPath + "'")
+        spark.sql("CREATE TABLE events USING " + format + " LOCATION '" + eventsPath + "events/'")
         events_delta.count()
 
         if (format == "delta") {
