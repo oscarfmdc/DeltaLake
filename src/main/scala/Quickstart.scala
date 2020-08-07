@@ -1,8 +1,10 @@
 import org.apache.spark.sql.functions._
-import com.databricks.dbutils_v1.DBUtilsHolder.dbutils
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+/**
+ * Tests delta lake in Azure Databricks environment
+ */
 object Quickstart {
 
     def main(args: Array[String]): Unit = {
@@ -12,8 +14,15 @@ object Quickstart {
         val spark = SparkSession.builder.config(sc.getConf).getOrCreate()
 
         val eventsPath = args(0)
-        // delta/parquet
         val format = args(1)
+        val iterations = args(2).toInt
+
+        if (format != "parquet" && format != "delta") {
+            System.exit(1)
+        }
+        if (iterations < 1) {
+            System.exit(1)
+        }
 
         // Read example dataset
         val events: DataFrame = spark.read
@@ -27,7 +36,7 @@ object Quickstart {
         events.write.format(format).mode("overwrite").partitionBy("date").save(eventsPath + "events/")
 
         // Append historical events to dataset
-        for( w <- 0 to 100){
+        for( w <- 0 to iterations){
             val historical_events = spark.read
               .option("inferSchema", "true")
               .json("/databricks-datasets/structured-streaming/events/")
@@ -47,7 +56,7 @@ object Quickstart {
         events_delta.count()
 
         if (format == "delta") {
-            spark.sql("OPTIMIZE events")
+            spark.sql("OPTIMIZE events ZORDER BY (action)")
         }
 
         // transform the full dataset and persist it
