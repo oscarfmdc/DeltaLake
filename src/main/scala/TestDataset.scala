@@ -62,9 +62,9 @@ object TestDataset {
 
     // transform the full dataset and persist it
     events_delta
-      .groupBy("_c1")
+      .groupBy("_c1", "date")
       .agg(count("_c1").alias("count"))
-      .orderBy("date")
+      .orderBy("date", "_c1")
 
     events_delta.write.format(format)
       .mode("overwrite")
