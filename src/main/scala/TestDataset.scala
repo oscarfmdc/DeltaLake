@@ -1,6 +1,6 @@
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.apache.spark.sql.functions.{col, count, expr, from_unixtime}
+import org.apache.spark.sql.functions.{col, count, from_unixtime}
 import org.apache.spark.sql.functions._
 
 /**
