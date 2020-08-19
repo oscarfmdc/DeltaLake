@@ -1,4 +1,3 @@
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.col
 import org.apache.spark.{SparkConf, SparkContext}
@@ -21,15 +20,6 @@ object KafkaPerfTest {
     val sc = SparkContext.getOrCreate(conf)
     val spark = SparkSession.builder.config(sc.getConf).getOrCreate()
 
-    val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> brokers,
-      "key.deserializer" -> classOf[StringDeserializer],
-      "value.deserializer" -> classOf[StringDeserializer],
-      "group.id" -> groupId,
-      "auto.offset.reset" -> "latest",
-      "enable.auto.commit" -> (false: java.lang.Boolean)
-    )
-
     spark.readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", brokers)
@@ -42,7 +32,7 @@ object KafkaPerfTest {
       .filter(col("value").isNotNull) // Remove empty values
       .writeStream
       .format("delta")
-      .outputMode("append")
+      .outputMode("overwrite")
       .option("checkpointLocation", checkpoint_location)
       .start(delta_location) // as a path
 

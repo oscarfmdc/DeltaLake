@@ -23,10 +23,12 @@ object StreamingPerfTest {
       .load(delta_location)
       .select("value")
       .withColumn("wordCount", size(split(col("value"), " ")))
-      .agg(sum("wordCount").cast("long"))
+      .agg(sum("wordCount").cast("long").alias("count"))
+
       .writeStream
       .format("delta")
       .option("path", results_location)
+      .outputMode("complete")
       .option("checkpointLocation", checkpoint_location)
       .start()
   }
